@@ -11,6 +11,12 @@
 - **系统托盘** — 关闭时最小化到托盘，后台常驻
 - **窗口记忆** — 自动保存窗口位置，下次打开恢复上次位置
 
+## 📥 下载安装
+
+前往 [Releases 页面](https://github.com/interesting-sudo/dashtick/releases) 下载最新版本的安装包（`DashTick_x.x.x_x64-setup.exe`），双击即可安装。
+
+> 首次运行需要 WebView2 运行时，Windows 10/11 通常已预装。如未安装，程序会自动下载。
+
 ## 🛠 技术栈
 
 | 层级 | 技术 |
