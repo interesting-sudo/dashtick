@@ -43,9 +43,13 @@
       "icons/icon.png",
       "icons/icon.ico"
     ],
+    "resources": ["WebView2Loader.dll"],
     "windows": {
       "webviewInstallMode": {
         "type": "embedBootstrapper"
+      },
+      "nsis": {
+        "installerHooks": "./windows/hooks.nsh"
       }
     }
   },
