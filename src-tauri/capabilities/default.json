@@ -10,7 +10,6 @@
     "core:window:allow-set-position",
     "notification:default",
     "global-shortcut:default",
-    "shell:default",
-    "single-instance:default"
+    "shell:default"
   ]
 }
