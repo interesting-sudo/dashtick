@@ -72,8 +72,9 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
 /// 显示主窗口
 pub fn show_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
-        // 如果已可见，只需聚焦
+        // 如果已可见（可能最小化了），恢复并聚焦
         if window.is_visible().unwrap_or(false) {
+            let _ = window.unminimize();
             let _ = window.set_focus();
             return;
         }

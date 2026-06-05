@@ -6,9 +6,11 @@
     "core:default",
     "core:window:allow-start-dragging",
     "core:window:allow-minimize",
+    "core:window:allow-unminimize",
     "core:window:allow-set-position",
     "notification:default",
     "global-shortcut:default",
-    "shell:default"
+    "shell:default",
+    "single-instance:default"
   ]
 }

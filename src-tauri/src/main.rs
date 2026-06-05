@@ -91,6 +91,10 @@ fn main() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            // 第二个实例启动时，聚焦已有窗口
+            tray::show_window(app);
+        }))
         .setup(|app| {
             // 初始化数据库
             let app_dir = app.path().app_data_dir().expect("无法获取应用数据目录");
