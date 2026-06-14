@@ -14,6 +14,11 @@ function App() {
   const [detailItem, setDetailItem] = useState<Task | Idea | null>(null);
   const [detailType, setDetailType] = useState<"task" | "idea">("task");
 
+  // 切换标签时关闭详情面板
+  useEffect(() => {
+    setDetailItem(null);
+  }, [activeTab]);
+
   useEffect(() => {
     Promise.all([fetchTasks(), fetchIdeas()]).finally(() => setLoading(false));
 
