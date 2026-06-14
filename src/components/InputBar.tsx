@@ -1,18 +1,29 @@
 import { useState, useRef, useEffect } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { useStore } from "../store/useStore";
 import { parseTimeFromInput, hasTimeKeyword } from "../lib/timeParser";
 import TimePicker from "./TimePicker";
 
 export default function InputBar() {
-  const { inputText, setInputText, addTask, addIdea, activeTab, setActiveTab } = useStore();
+  const { inputText, setInputText, addTask, addIdea, activeTab } = useStore();
   const [isComposing, setIsComposing] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [manualDueDate, setManualDueDate] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [pasting, setPasting] = useState(false);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  // 自动调整 textarea 高度
+  useEffect(() => {
+    const el = inputRef.current;
+    if (el) {
+      el.style.height = "auto";
+      el.style.height = Math.min(el.scrollHeight, 120) + "px";
+    }
+  }, [inputText]);
 
   const handleSubmit = async () => {
     const text = inputText.trim();
@@ -21,7 +32,6 @@ export default function InputBar() {
     const hasTime = hasTimeKeyword(text);
 
     if (hasTime || activeTab === "tasks" || manualDueDate) {
-      // 优先使用手动选择的时间，其次使用智能识别
       let dueDate = manualDueDate;
       let cleanText = text;
 
@@ -32,10 +42,8 @@ export default function InputBar() {
       }
 
       await addTask(cleanText, dueDate || undefined);
-      setActiveTab("tasks");
     } else {
       await addIdea(text);
-      setActiveTab("ideas");
     }
 
     setInputText("");
@@ -44,25 +52,70 @@ export default function InputBar() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !isComposing) {
+    if (e.key === "Enter" && !isComposing && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
+    }
+  };
+
+  // 处理粘贴图片
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (!file) return;
+
+        setPasting(true);
+        try {
+          // 读取文件为 base64
+          const reader = new FileReader();
+          const imageData = await new Promise<string>((resolve, reject) => {
+            reader.onload = () => {
+              const result = reader.result as string;
+              // 去掉 data:image/xxx;base64, 前缀
+              resolve(result.split(",")[1]);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+
+          // 获取扩展名
+          const ext = file.type.split("/")[1] || "png";
+
+          // 调用 Rust 保存图片
+          const filePath = await invoke<string>("save_image", { data: imageData, ext });
+
+          // 在输入框中插入图片引用
+          const imgText = `\n![图片](${filePath})\n`;
+          setInputText(inputText + imgText);
+        } catch (err) {
+          console.error("粘贴图片失败:", err);
+        } finally {
+          setPasting(false);
+        }
+        return;
+      }
     }
   };
 
   return (
     <div style={{ position: "relative" }}>
       <div className="input-wrapper">
-        <input
+        <textarea
           ref={inputRef}
-          type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           onCompositionStart={() => setIsComposing(true)}
           onCompositionEnd={() => setIsComposing(false)}
-          placeholder="💡 记录一闪而过的想法..."
-          className="input-field"
+          placeholder={pasting ? "⏳ 正在保存图片..." : "💡 记录一闪而过的想法...（支持粘贴图片）"}
+          className="input-field input-textarea"
+          rows={1}
         />
         {/* 时间选择按钮 */}
         <button

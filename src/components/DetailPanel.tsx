@@ -1,5 +1,6 @@
 import Markdown from "react-markdown";
 import { type Task, type Idea } from "../store/useStore";
+import { convertFileSrc } from "@tauri-apps/api/core";
 
 interface DetailPanelProps {
   item: Task | Idea;
@@ -51,6 +52,13 @@ export default function DetailPanel({ item, type, onClose }: DetailPanelProps) {
             strong: ({ children }) => <strong>{children}</strong>,
             em: ({ children }) => <em>{children}</em>,
             hr: () => <hr />,
+            img: ({ src, alt }) => {
+              // 本地图片路径转换
+              const imageSrc = src?.startsWith("images/")
+                ? convertFileSrc(src)
+                : src;
+              return <img src={imageSrc} alt={alt || "图片"} style={{ maxWidth: "100%", borderRadius: 8 }} />;
+            },
           }}
         >
           {item.content}

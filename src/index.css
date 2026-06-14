@@ -821,6 +821,17 @@ body {
   width: auto;
 }
 
+/* 多行输入框 */
+.input-textarea {
+  resize: none;
+  overflow-y: auto;
+  min-height: 38px;
+  max-height: 120px;
+  line-height: 1.5;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
 /* ==================== 窗口缩放手柄 ==================== */
 .resize-handle {
   position: absolute;

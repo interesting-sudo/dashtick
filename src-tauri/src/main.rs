@@ -84,6 +84,33 @@ fn show_window(app: tauri::AppHandle) {
     tray::show_window(&app);
 }
 
+/// 保存粘贴的图片到本地文件系统
+#[tauri::command]
+fn save_image(app: tauri::AppHandle, data: String, ext: String) -> Result<String, String> {
+    use base64::Engine;
+
+    let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    let images_dir = app_dir.join("images");
+    std::fs::create_dir_all(&images_dir).map_err(|e| e.to_string())?;
+
+    // 生成文件名：时间戳 + 随机数
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_millis();
+    let filename = format!("img_{}.{}", timestamp, ext);
+    let file_path = images_dir.join(&filename);
+
+    // 解码 base64 并写入文件
+    let image_data = base64::engine::general_purpose::STANDARD
+        .decode(&data)
+        .map_err(|e| format!("base64 解码失败: {}", e))?;
+    std::fs::write(&file_path, &image_data).map_err(|e| e.to_string())?;
+
+    // 返回相对于应用数据目录的路径
+    Ok(format!("images/{}", filename))
+}
+
 // ==================== Main ====================
 
 fn main() {
@@ -144,6 +171,7 @@ fn main() {
             delete_idea,
             hide_window,
             show_window,
+            save_image,
             debug_test_notification,
             debug_get_reminders,
         ])
