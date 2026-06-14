@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "DashTick - 闪小条",
-        "width": 520,
-        "height": 620,
+        "width": 640,
+        "height": 600,
         "resizable": true,
         "decorations": false,
         "transparent": false,

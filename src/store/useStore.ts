@@ -21,10 +21,16 @@ export interface Idea {
 
 type TabType = "tasks" | "ideas";
 
+export type SelectableItem = { type: "task"; data: Task } | { type: "idea"; data: Idea };
+
 interface AppState {
   // 标签状态
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
+
+  // 选中条目
+  selectedItem: SelectableItem | null;
+  setSelectedItem: (item: SelectableItem | null) => void;
 
   // 任务状态
   tasks: Task[];
@@ -48,7 +54,11 @@ interface AppState {
 export const useStore = create<AppState>((set, get) => ({
   // 标签状态
   activeTab: "tasks",
-  setActiveTab: (tab) => set({ activeTab: tab }),
+  setActiveTab: (tab) => set({ activeTab: tab, selectedItem: null }),
+
+  // 选中条目
+  selectedItem: null,
+  setSelectedItem: (item) => set({ selectedItem: item }),
 
   // 任务状态
   tasks: [],
@@ -79,6 +89,10 @@ export const useStore = create<AppState>((set, get) => ({
   deleteTask: async (id) => {
     try {
       await invoke("delete_task", { id });
+      const { selectedItem } = get();
+      if (selectedItem?.type === "task" && selectedItem.data.id === id) {
+        set({ selectedItem: null });
+      }
       await get().fetchTasks();
     } catch (e) {
       console.error("删除任务失败:", e);
@@ -114,6 +128,10 @@ export const useStore = create<AppState>((set, get) => ({
   deleteIdea: async (id) => {
     try {
       await invoke("delete_idea", { id });
+      const { selectedItem } = get();
+      if (selectedItem?.type === "idea" && selectedItem.data.id === id) {
+        set({ selectedItem: null });
+      }
       await get().fetchIdeas();
     } catch (e) {
       console.error("删除灵感失败:", e);

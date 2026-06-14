@@ -141,12 +141,12 @@ body {
 
 .input-btn {
   position: absolute;
-  right: 6px;
+  right: 4px;
   top: 50%;
   transform: translateY(-50%);
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   border: none;
   background: #6366f1;
   color: #fff;
@@ -167,34 +167,6 @@ body {
 
 .input-btn:active {
   transform: translateY(-50%) scale(0.97);
-}
-
-.input-time-btn {
-  position: absolute;
-  right: 44px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
-  border: none;
-  background: transparent;
-  font-size: 13px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-  opacity: 0.4;
-}
-
-.input-time-btn:hover {
-  opacity: 1;
-  background: rgba(0, 0, 0, 0.04);
-}
-
-.input-time-btn.has-time {
-  opacity: 1;
 }
 
 .input-hint {
@@ -812,13 +784,6 @@ body {
 
 .tp-confirm-btn:hover {
   background: #5558e6;
-}
-
-/* 输入框中的时间选择器（全宽） */
-.app-input-area .time-picker {
-  left: 0;
-  right: 0;
-  width: auto;
 }
 
 /* 多行输入框 */

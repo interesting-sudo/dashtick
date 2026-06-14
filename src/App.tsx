@@ -9,7 +9,7 @@ import DetailPanel from "./components/DetailPanel";
 import { useStore, type Task, type Idea } from "./store/useStore";
 
 function App() {
-  const { activeTab, fetchTasks, fetchIdeas } = useStore();
+  const { activeTab, fetchTasks, fetchIdeas, tasks, ideas } = useStore();
   const [loading, setLoading] = useState(true);
   const [detailItem, setDetailItem] = useState<Task | Idea | null>(null);
   const [detailType, setDetailType] = useState<"task" | "idea">("task");
@@ -18,6 +18,20 @@ function App() {
   useEffect(() => {
     setDetailItem(null);
   }, [activeTab]);
+
+  // 详情条目被删除后自动关闭面板
+  useEffect(() => {
+    if (!detailItem) return;
+    if (detailType === "task") {
+      if (!tasks.find(t => t.id === detailItem.id)) {
+        setDetailItem(null);
+      }
+    } else {
+      if (!ideas.find(i => i.id === detailItem.id)) {
+        setDetailItem(null);
+      }
+    }
+  }, [tasks, ideas, detailItem, detailType]);
 
   useEffect(() => {
     Promise.all([fetchTasks(), fetchIdeas()]).finally(() => setLoading(false));
