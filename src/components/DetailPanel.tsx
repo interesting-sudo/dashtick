@@ -53,8 +53,8 @@ export default function DetailPanel({ item, type, onClose }: DetailPanelProps) {
             em: ({ children }) => <em>{children}</em>,
             hr: () => <hr />,
             img: ({ src, alt }) => {
-              // 本地图片路径转换
-              const imageSrc = src?.startsWith("images/")
+              // 本地图片路径转换（支持绝对路径和相对路径）
+              const imageSrc = src && !src.startsWith("http")
                 ? convertFileSrc(src)
                 : src;
               return <img src={imageSrc} alt={alt || "图片"} style={{ maxWidth: "100%", borderRadius: 8 }} />;

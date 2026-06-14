@@ -107,8 +107,8 @@ fn save_image(app: tauri::AppHandle, data: String, ext: String) -> Result<String
         .map_err(|e| format!("base64 解码失败: {}", e))?;
     std::fs::write(&file_path, &image_data).map_err(|e| e.to_string())?;
 
-    // 返回相对于应用数据目录的路径
-    Ok(format!("images/{}", filename))
+    // 返回绝对路径
+    Ok(file_path.to_string_lossy().to_string())
 }
 
 // ==================== Main ====================
