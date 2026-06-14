@@ -22,7 +22,11 @@ function formatCreatedTime(dateStr: string): string {
   return `${date.getMonth() + 1}/${date.getDate()} ${h}:${m}`;
 }
 
-export default function TaskList() {
+interface TaskListProps {
+  onOpenDetail?: (task: Task) => void;
+}
+
+export default function TaskList({ onOpenDetail }: TaskListProps) {
   const { tasks, toggleTask, deleteTask, updateTaskDueDate } = useStore();
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
 
@@ -64,7 +68,7 @@ export default function TaskList() {
             </svg>
           </button>
 
-          <div className="task-body">
+          <div className="task-body" style={{ cursor: "pointer" }} onClick={() => onOpenDetail?.(task)}>
             <div className="task-content">{task.content}</div>
             <div className="task-meta">
               <span className="task-created">{formatCreatedTime(task.created_at)}</span>

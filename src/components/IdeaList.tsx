@@ -1,6 +1,8 @@
-import { useState } from "react";
 import { useStore, type Idea } from "../store/useStore";
-import PreviewBubble from "./PreviewBubble";
+
+interface IdeaListProps {
+  onOpenDetail?: (idea: Idea) => void;
+}
 
 function formatCreatedTime(dateStr: string): string {
   const date = new Date(dateStr);
@@ -21,23 +23,8 @@ function formatCreatedTime(dateStr: string): string {
   return `${date.getMonth() + 1}/${date.getDate()} ${h}:${m}`;
 }
 
-export default function IdeaList() {
+export default function IdeaList({ onOpenDetail }: IdeaListProps) {
   const { ideas, deleteIdea } = useStore();
-  const [hoveredIdea, setHoveredIdea] = useState<Idea | null>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-  const handleMouseEnter = (idea: Idea, e: React.MouseEvent) => {
-    setHoveredIdea(idea);
-    setMousePos({ x: e.clientX, y: e.clientY });
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    setMousePos({ x: e.clientX, y: e.clientY });
-  };
-
-  const handleMouseLeave = () => {
-    setHoveredIdea(null);
-  };
 
   const sortedIdeas = [...ideas].sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -54,34 +41,30 @@ export default function IdeaList() {
   }
 
   return (
-    <>
-      <div>
-        {sortedIdeas.map((idea) => (
-          <div
-            key={idea.id}
-            onMouseEnter={(e) => handleMouseEnter(idea, e)}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            className="idea-item"
-          >
-            <span className="idea-icon">💡</span>
-            <div className="idea-body">
-              <div className="idea-content">{idea.content}</div>
-              <div className="idea-meta">
-                <span className="idea-created">{formatCreatedTime(idea.created_at)}</span>
-              </div>
+    <div>
+      {sortedIdeas.map((idea) => (
+        <div
+          key={idea.id}
+          className="idea-item"
+          style={{ cursor: "pointer" }}
+          onClick={() => onOpenDetail?.(idea)}
+        >
+          <span className="idea-icon">💡</span>
+          <div className="idea-body">
+            <div className="idea-content">{idea.content}</div>
+            <div className="idea-meta">
+              <span className="idea-created">{formatCreatedTime(idea.created_at)}</span>
             </div>
-            <button
-              onClick={() => deleteIdea(idea.id)}
-              onMouseDown={(e) => e.stopPropagation()}
-              className="idea-delete"
-            >
-              ×
-            </button>
           </div>
-        ))}
-      </div>
-      {hoveredIdea && <PreviewBubble content={hoveredIdea.content} position={mousePos} />}
-    </>
+          <button
+            onClick={() => deleteIdea(idea.id)}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="idea-delete"
+          >
+            ×
+          </button>
+        </div>
+      ))}
+    </div>
   );
 }

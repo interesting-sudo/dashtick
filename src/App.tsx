@@ -1,15 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import InputBar from "./components/InputBar";
 import TabSwitch from "./components/TabSwitch";
 import TaskList from "./components/TaskList";
 import IdeaList from "./components/IdeaList";
-import { useStore } from "./store/useStore";
+import DetailPanel from "./components/DetailPanel";
+import { useStore, type Task, type Idea } from "./store/useStore";
 
 function App() {
   const { activeTab, fetchTasks, fetchIdeas } = useStore();
   const [loading, setLoading] = useState(true);
+  const [detailItem, setDetailItem] = useState<Task | Idea | null>(null);
+  const [detailType, setDetailType] = useState<"task" | "idea">("task");
 
   useEffect(() => {
     Promise.all([fetchTasks(), fetchIdeas()]).finally(() => setLoading(false));
@@ -20,7 +23,11 @@ function App() {
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        invoke("hide_window").catch(console.error);
+        if (detailItem) {
+          setDetailItem(null);
+        } else {
+          invoke("hide_window").catch(console.error);
+        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -28,7 +35,7 @@ function App() {
       clearInterval(refreshTimer);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [fetchTasks, fetchIdeas]);
+  }, [fetchTasks, fetchIdeas, detailItem]);
 
   // 标题栏拖拽
   const handleTitleBarMouseDown = (e: React.MouseEvent) => {
@@ -37,6 +44,13 @@ function App() {
     if (target.closest("button") || target.closest("input")) return;
     getCurrentWindow().startDragging().catch(() => {});
   };
+
+  // 窗口缩放
+  const handleResizeMouseDown = useCallback((direction: string) => (e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    getCurrentWindow().startResizeDragging(direction as any).catch(() => {});
+  }, []);
 
   // "-" 按钮 → 隐藏到托盘
   const handleHideToTray = (e: React.MouseEvent) => {
@@ -52,6 +66,17 @@ function App() {
     getCurrentWindow().minimize().catch(console.error);
   };
 
+  // 打开详情面板
+  const handleOpenDetail = useCallback((item: Task | Idea, type: "task" | "idea") => {
+    setDetailItem(item);
+    setDetailType(type);
+  }, []);
+
+  // 关闭详情面板
+  const handleCloseDetail = useCallback(() => {
+    setDetailItem(null);
+  }, []);
+
   if (loading) {
     return (
       <div className="app-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -65,6 +90,16 @@ function App() {
 
   return (
     <div className="app-container">
+      {/* 缩放手柄 */}
+      <div className="resize-handle resize-handle-top" onMouseDown={handleResizeMouseDown("Top")} />
+      <div className="resize-handle resize-handle-bottom" onMouseDown={handleResizeMouseDown("Bottom")} />
+      <div className="resize-handle resize-handle-left" onMouseDown={handleResizeMouseDown("Left")} />
+      <div className="resize-handle resize-handle-right" onMouseDown={handleResizeMouseDown("Right")} />
+      <div className="resize-handle resize-handle-top-left" onMouseDown={handleResizeMouseDown("TopLeft")} />
+      <div className="resize-handle resize-handle-top-right" onMouseDown={handleResizeMouseDown("TopRight")} />
+      <div className="resize-handle resize-handle-bottom-left" onMouseDown={handleResizeMouseDown("BottomLeft")} />
+      <div className="resize-handle resize-handle-bottom-right" onMouseDown={handleResizeMouseDown("BottomRight")} />
+
       {/* 标题栏 */}
       <div
         className="app-titlebar"
@@ -111,8 +146,21 @@ function App() {
       </div>
 
       {/* 内容区域 */}
-      <div className="app-content">
-        {activeTab === "tasks" ? <TaskList /> : <IdeaList />}
+      <div className="app-content" style={{ position: "relative", flex: 1, display: "flex", overflow: "hidden" }}>
+        <div style={{ flex: 1, overflow: "auto" }}>
+          {activeTab === "tasks" ? (
+            <TaskList onOpenDetail={(item) => handleOpenDetail(item, "task")} />
+          ) : (
+            <IdeaList onOpenDetail={(item) => handleOpenDetail(item, "idea")} />
+          )}
+        </div>
+        {detailItem && (
+          <DetailPanel
+            item={detailItem}
+            type={detailType}
+            onClose={handleCloseDetail}
+          />
+        )}
       </div>
 
       {/* 底部提示 */}
